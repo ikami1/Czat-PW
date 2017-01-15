@@ -84,7 +84,7 @@ int main(){
              if(wiadOdebrana.to_symbol == '*')
                 printf("%c[%dm%c%s%s", 0x1B, YELLOW, wiadOdebrana.to_symbol, wiadOdebrana.from, wiadOdebrana.message);
              Reset();
-             Reset();
+             printf("\n");
           }
 
        }
