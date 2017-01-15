@@ -264,17 +264,29 @@ int main(){
                 strcpy(nazwaPokoju, splitToWho(polecenie));
                 j = znajdzIndeksPokoju(tablicaPokoi, nazwaPokoju);
 
-                wiadWyslana.mtype = 1;
-                strcpy(wiadWyslana.from, "");
-                sprintf(wiadWyslana.from,"%s.%s",nazwaPokoju,wiadOdebrana.username);
-                strcpy(wiadWyslana.message, wiadOdebrana.data);
-                for(i=1; i<ileUzytkownikow[j]+1; i++){
-                    strcpy(wiadWyslana.to, tablicaPokoi[i][j]);
-                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, tablicaPokoi[i][j])]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
-                            perror("msgsnd do grupy");
-                            exit(1);
+                if(j == -1){
+                    wiadWyslana.mtype = 1;
+                    strcpy(wiadWyslana.from, zajeteid);
+                    strcpy(wiadWyslana.to, wiadOdebrana.username);
+                    strcpy(wiadWyslana.message, "Nie mozna pisac do nieistniejacego pokoju");
+                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                        perror("msgsnd do nieistniejacej grupy");
+                        exit(1);
                     }
-                  }
+                }
+                else{
+                    wiadWyslana.mtype = 1;
+                    strcpy(wiadWyslana.from, "");
+                    sprintf(wiadWyslana.from,"%s.%s",nazwaPokoju,wiadOdebrana.username);
+                    strcpy(wiadWyslana.message, wiadOdebrana.data);
+                    for(i=1; i<ileUzytkownikow[j]+1; i++){
+                        strcpy(wiadWyslana.to, tablicaPokoi[i][j]);
+                        if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, tablicaPokoi[i][j])]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                                perror("msgsnd do grupy");
+                                exit(1);
+                        }
+                    }
+                }
             }
 
             if(!strcmp(polecenie, "help")){
