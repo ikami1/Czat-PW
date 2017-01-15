@@ -35,6 +35,16 @@ int znajdzIndeksPokoju(char *tablica[MAX_USERS+1][MAX_GROUPS], char nazwa[]){
     return n;
 }
 
+int znajdzIndeksUsera(char *tablica[MAX_USERS+1][MAX_GROUPS], char nazwa[], int indeksPokoju){
+    int i=0,n;
+    for(i=1; i<MAX_USERS+1; i++)
+        if(!strcmp(tablica[i][indeksPokoju],nazwa)){
+            n = i;
+            break;
+        }
+    return n;
+}
+
 int znajdzIndeks(char *tablica[2][MAX_USERS], char nickname[]){
     int i=0,n;
     for(i=0; i<MAX_USERS; i++)
