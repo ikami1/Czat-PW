@@ -10,7 +10,7 @@ int main(){
 
    if((idserwer = msgget(key, IPC_CREAT | 0622)) == -1){
         perror("msgget serwer");
-    	exit(1);
+      exit(1);
     }
 
     printf("ID serwera: %d\n", idserwer);
@@ -29,7 +29,7 @@ int main(){
             tablicaPokoi[j][i] = (char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
     for(j=0; j<MAX_USERS+1; j++)
         for(i=0; i<MAX_GROUPS; i++)
-            strcpy(tablicaKolejek[j][i], "");
+            strcpy(tablicaPokoi[j][i], "");
 
     int ileUzytkownikow[MAX_GROUPS];
     for(i=0; i<MAX_GROUPS; i++)
@@ -103,6 +103,7 @@ int main(){
                 int i=0;
                 printf("Przesylam wszytskich uzytkownikow\n");
                 for( i=0; i<liczbaUserow; i++){
+                    strcpy(wiadWyslana.message, "");
                     strcpy(wiadWyslana.message, tablicaKolejek[0][i]);
                     if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                         perror("msgsnd users");
@@ -116,7 +117,7 @@ int main(){
                 strcpy(wiadWyslana.from, wiadOdebrana.username);
                 strcpy(wiadWyslana.to, splitToWho(polecenie));
                 strcpy(wiadWyslana.message, wiadOdebrana.data);
-                if(czyZajety(tablicaKolejek, wiadWyslana.to)){
+                if(!czyZajety(tablicaKolejek, wiadWyslana.to)){
                     strcpy(wiadWyslana.from, zajeteid);
                     strcpy(wiadWyslana.to, wiadOdebrana.username);
                     strcpy(wiadWyslana.message, "Nie ma takiego uzytkownika");
@@ -141,7 +142,7 @@ int main(){
             }
             if(!strcmp(polecenie, "join")){
                 znajdz_polecenie(wiadOdebrana.data, nazwa);
-                if(istniejePokoj(tablicaPokoi, nazwa)){
+                if(!istniejePokoj(tablicaPokoi, nazwa)){
                     if(liczbaPokoi == MAX_GROUPS){
                         wiadWyslana.mtype = 1;
                         strcpy(wiadWyslana.from, zajeteid);
@@ -159,8 +160,8 @@ int main(){
 
                         wiadWyslana.mtype = 1;
                         strcpy(wiadWyslana.from, zajeteid);
-                        strcpy(wiadWyslana.message, "Utworzono pokoj o nazwie ");
-                        strcpy(wiadWyslana.message, nazwa);
+                        strcpy(wiadWyslana.message, "");
+                        sprintf(wiadWyslana.message, "Utworzono pokoj o nazwie %s", nazwa);
                         if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                             perror("msgsnd join nowy pokoj");
                             exit(1);
@@ -169,13 +170,13 @@ int main(){
                 }
                 else{
                     int numerPokoju = znajdzIndeksPokoju(tablicaPokoi, nazwa);
-                    strcpy(tablicaPokoi[ileUzytkownikow+1][numerPokoju], wiadOdebrana.username);
+                    strcpy(tablicaPokoi[ileUzytkownikow[numerPokoju]+1][numerPokoju], wiadOdebrana.username);
                     ileUzytkownikow[numerPokoju] += 1;
 
                     wiadWyslana.mtype = 1;
                     strcpy(wiadWyslana.from, zajeteid);
-                    strcpy(wiadWyslana.message, "Dolaczono do pokoju o nazwie ");
-                    strcpy(wiadWyslana.message, nazwa);
+                    strcpy(wiadWyslana.message, "");
+                    sprintf(wiadWyslana.message, "Dolaczono do pokoju o nazwie %s", nazwa);
                     if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                         perror("msgsnd join pokoj");
                         exit(1);
