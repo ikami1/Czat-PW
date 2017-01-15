@@ -217,6 +217,7 @@ int main(){
                     if(ileUzytkownikow[numerPokoju] == 1){
                         strcpy(tablicaPokoi[1][numerPokoju],"");
                         strcpy(tablicaPokoi[0][numerPokoju],"");
+                        liczbaPokoi -=1;
 
                         wiadWyslana.mtype=1;
                         strcpy(wiadWyslana.to, wiadOdebrana.username);
@@ -232,7 +233,7 @@ int main(){
                         indeksUser = znajdzIndeksUsera(tablicaPokoi, wiadOdebrana.username, numerPokoju);
                         strcpy(tablicaPokoi[indeksUser][numerPokoju], tablicaPokoi[ileUzytkownikow[numerPokoju]][numerPokoju]);
                         strcpy(tablicaPokoi[ileUzytkownikow[numerPokoju]][numerPokoju], "");
-
+                        ileUzytkownikow[numerPokoju]-=1;
                         wiadWyslana.mtype=1;
                         strcpy(wiadWyslana.to, wiadOdebrana.username);
                         strcpy(wiadWyslana.from, zajeteid);
@@ -247,19 +248,21 @@ int main(){
             }
 
             if(polecenie[0] == '#'){            //wiadomosc do pokoju
-                nazwaPokoju = splitToWho(polecenie);
+                wiadWyslana.to_symbol = polecenie[0];
+                strcpy(nazwaPokoju, splitToWho(polecenie));
                 j = znajdzIndeksPokoju(tablicaPokoi, nazwaPokoju);
 
                 wiadWyslana.mtype = 1;
-                wiadWyslana.to_symbol = polecenie[0];
-                strcpy(wiadWyslana.from, wiadOdebrana.username);
+                strcpy(wiadWyslana.from, "");
+                sprintf(wiadWyslana.from,"%s.%s",nazwaPokoju,wiadOdebrana.username);
                 strcpy(wiadWyslana.message, wiadOdebrana.data);
-                for(i=1; i<ileUzytkownikow[j]+1; i++)
-                    strcpy(wiadWyslana.to, tablicaPokoi[0][j]);
-                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, tablicaPokoi[0][j])]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                for(i=1; i<ileUzytkownikow[j]+1; i++){
+                    strcpy(wiadWyslana.to, tablicaPokoi[i][j]);
+                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, tablicaPokoi[i][j])]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                             perror("msgsnd do grupy");
                             exit(1);
                     }
+                  }
             }
 
             if(!strcmp(polecenie, "help")){
