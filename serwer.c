@@ -1,15 +1,16 @@
 #include "funkcje.c"
 
 int main(){
-   int idserwer,i,j,liczbaUserow=0;
+   int idserwer,i,j,liczbaUserow=0, liczbaPokoi=0;
    char zajeteid[7] = {'s', 'e', 'r', 'w', 'e', 'r', '\0'};
    char polecenie[MAX_MESSAGE_LENGTH];
+   char nazwa[MAX_MESSAGE_LENGTH];
 
    key_t key = ftok("komunikacja", zajeteid);
 
    if((idserwer = msgget(key, IPC_CREAT | 0622)) == -1){
         perror("msgget serwer");
-      exit(1);
+    	exit(1);
     }
 
     printf("ID serwera: %d\n", idserwer);
@@ -21,6 +22,18 @@ int main(){
     for(j=0; j<2; j++)
         for(i=0; i<MAX_USERS; i++)
             strcpy(tablicaKolejek[j][i], "12345678901234567890-1234567890");
+
+    char *tablicaPokoi[MAX_USERS+1][MAX_GROUPS];
+    for(j=0; j<MAX_USERS+1; j++)
+        for(i=0; i<MAX_GROUPS; i++)
+            tablicaPokoi[j][i] = (char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+    for(j=0; j<MAX_USERS+1; j++)
+        for(i=0; i<MAX_GROUPS; i++)
+            strcpy(tablicaKolejek[j][i], "");
+
+    int ileUzytkownikow[MAX_GROUPS];
+    for(i=0; i<MAX_GROUPS; i++)
+        ileUzytkownikow[i] = 0;
 
     struct command wiadOdebrana;
     struct message wiadWyslana;
@@ -83,12 +96,12 @@ int main(){
                 strcpy(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)],tablicaKolejek[1][liczbaUserow]);
                 strcpy(tablicaKolejek[0][liczbaUserow], "12345678901234567890-1234567890");
             }
-            if(!strcmp(polecenie, "users")){
+            if(!strcmp(polecenie, "users")){            //wyswietla wszytskich uzytkownikow
                 wiadWyslana.mtype = 1;
                 strcpy(wiadWyslana.to, wiadOdebrana.username);
                 strcpy(wiadWyslana.from, zajeteid);
                 int i=0;
-                printf("Przesylam wszytskich użytkownikow\n");
+                printf("Przesylam wszytskich uzytkownikow\n");
                 for( i=0; i<liczbaUserow; i++){
                     strcpy(wiadWyslana.message, tablicaKolejek[0][i]);
                     if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
@@ -103,10 +116,10 @@ int main(){
                 strcpy(wiadWyslana.from, wiadOdebrana.username);
                 strcpy(wiadWyslana.to, splitToWho(polecenie));
                 strcpy(wiadWyslana.message, wiadOdebrana.data);
-                if(!czyZajety(tablicaKolejek, wiadWyslana.to) || !strcmp(wiadWyslana.to, "serwer")){
+                if(czyZajety(tablicaKolejek, wiadWyslana.to)){
                     strcpy(wiadWyslana.from, zajeteid);
                     strcpy(wiadWyslana.to, wiadOdebrana.username);
-                    strcpy(wiadWyslana.message, "Nie ma takiego uzytkownika\n");
+                    strcpy(wiadWyslana.message, "Nie ma takiego uzytkownika");
                 }
                 if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadWyslana.to)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                         perror("msgsnd miedzy userami");
@@ -114,7 +127,7 @@ int main(){
                 }
             }
 
-            if(polecenie[0] == '*'){            //komunikacja miedzy uzytkownikami
+            if(polecenie[0] == '*'){            //wiadomosc do wszystkich
                 wiadWyslana.mtype = 1;
                 wiadWyslana.to_symbol = polecenie[0];
                 strcpy(wiadWyslana.from, wiadOdebrana.username);
@@ -126,17 +139,74 @@ int main(){
                             exit(1);
                     }
             }
+            if(!strcmp(polecenie, "join")){
+                znajdz_polecenie(wiadOdebrana.data, nazwa);
+                if(istniejePokoj(tablicaPokoi, nazwa)){
+                    if(liczbaPokoi == MAX_GROUPS){
+                        wiadWyslana.mtype = 1;
+                        strcpy(wiadWyslana.from, zajeteid);
+                        strcpy(wiadWyslana.message, "Nie mozna utworzyc pokoju. Osiagnieto maksymalna liczbe pokoi");
+                        if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                            perror("msgsnd join nowy pokoj");
+                            exit(1);
+                        }
+                    }
+                    else{
+                        strcpy(tablicaPokoi[0][liczbaPokoi], nazwa);
+                        strcpy(tablicaPokoi[1][liczbaPokoi], wiadOdebrana.username);
+                        ileUzytkownikow[liczbaPokoi]+=1;
+                        liczbaPokoi+=1;
+
+                        wiadWyslana.mtype = 1;
+                        strcpy(wiadWyslana.from, zajeteid);
+                        strcpy(wiadWyslana.message, "Utworzono pokoj o nazwie ");
+                        strcpy(wiadWyslana.message, nazwa);
+                        if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                            perror("msgsnd join nowy pokoj");
+                            exit(1);
+                        }
+                    }
+                }
+                else{
+                    int numerPokoju = znajdzIndeksPokoju(tablicaPokoi, nazwa);
+                    strcpy(tablicaPokoi[ileUzytkownikow+1][numerPokoju], wiadOdebrana.username);
+                    ileUzytkownikow[numerPokoju] += 1;
+
+                    wiadWyslana.mtype = 1;
+                    strcpy(wiadWyslana.from, zajeteid);
+                    strcpy(wiadWyslana.message, "Dolaczono do pokoju o nazwie ");
+                    strcpy(wiadWyslana.message, nazwa);
+                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                        perror("msgsnd join pokoj");
+                        exit(1);
+                    }
+                }
+            }
+            if(!strcmp(polecenie, "rooms")){
+                wiadWyslana.mtype = 1;
+                strcpy(wiadWyslana.to, wiadOdebrana.username);
+                strcpy(wiadWyslana.from, zajeteid);
+                int i=0;
+                printf("Przesylam wszytskie pokoje\n");
+                for( i=0; i<liczbaPokoi; i++){
+                    strcpy(wiadWyslana.message, tablicaPokoi[0][i]);
+                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                        perror("msgsnd users");
+                        exit(1);
+                    }
+                }
+            }
 
             if(!strcmp(polecenie, "help")){
                 wiadWyslana.mtype = 1;
                 strcpy(wiadWyslana.to, wiadOdebrana.username);
                 strcpy(wiadWyslana.from, zajeteid);
-                strcpy(wiadWyslana.message, "KOMENDA                    OPIS\nlogin [id_kolejki]          zalogowanie\n\njoin [nazwa_pokoju]         do³¹cz do pokoju\nleave [nazwa_pokoju]        wyjdŸ z pokoju\nrooms                       wyœwietl pokoje");
+                strcpy(wiadWyslana.message, "KOMENDA                    OPIS\nlogin [id_kolejki]          zalogowanie\n\njoin [nazwa_pokoju]         dolacz do pokoju\nleave [nazwa_pokoju]        wyjdz z pokoju\nrooms                       wyswietl pokoje");
                 if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                         perror("msgsnd help");
                         exit(1);
                 }
-                strcpy(wiadWyslana.message,"users                       wyœwietl u¿ytkowników\nhelp                        wyœwietl dostêpne komendy\n\n@[nick] [treœæ]             wiadomoœæ prywatna\n#[nazwa_pokoju] [treœæ]     wiadomoœæ do pokoju\n* [treœæ]                   wiadomoœæ do wszystkich");
+                strcpy(wiadWyslana.message,"users                       wyswietl uzytkownikow\nhelp                        wyswietl dostepne komendy\n\n@[nick] [tresc]             wiadomosc prywatna\n#[nazwa_pokoju] [tresc]     wiadomosc do pokoju\n* [tresc]                   wiadomoœæ do wszystkich");
                 if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
                         perror("msgsnd help2");
                         exit(1);
@@ -144,12 +214,6 @@ int main(){
             }
         }
     }
-
-
-    /*if (semctl(id, IPC_RMID, 0) == -1){
-      perror("semctl - usuwanie");
-      exit(1);
-    }*/
 
    return 0;
 }
