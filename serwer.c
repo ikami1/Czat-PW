@@ -171,16 +171,28 @@ int main(){
                 }
                 else{
                     int numerPokoju = znajdzIndeksPokoju(tablicaPokoi, nazwa);
-                    strcpy(tablicaPokoi[ileUzytkownikow[numerPokoju]+1][numerPokoju], wiadOdebrana.username);
-                    ileUzytkownikow[numerPokoju] += 1;
+                    if(znajdzIndeksUsera(tablicaPokoi, nazwa, numerPokoju) == -1){
+                        wiadWyslana.mtype = 1;
+                        strcpy(wiadWyslana.from, zajeteid);
+                        strcpy(wiadWyslana.message, "");
+                        sprintf(wiadWyslana.message, "Juz nalezysz do pokoju o nazwie %s", nazwa);
+                        if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                            perror("msgsnd join drugi raz");
+                            exit(1);
+                        }
+                    }
+                    else{
+                        strcpy(tablicaPokoi[ileUzytkownikow[numerPokoju]+1][numerPokoju], wiadOdebrana.username);
+                        ileUzytkownikow[numerPokoju] += 1;
 
-                    wiadWyslana.mtype = 1;
-                    strcpy(wiadWyslana.from, zajeteid);
-                    strcpy(wiadWyslana.message, "");
-                    sprintf(wiadWyslana.message, "Dolaczono do pokoju o nazwie %s", nazwa);
-                    if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
-                        perror("msgsnd join pokoj");
-                        exit(1);
+                        wiadWyslana.mtype = 1;
+                        strcpy(wiadWyslana.from, zajeteid);
+                        strcpy(wiadWyslana.message, "");
+                        sprintf(wiadWyslana.message, "Dolaczono do pokoju o nazwie %s", nazwa);
+                        if(msgsnd(atoi(tablicaKolejek[1][znajdzIndeks(tablicaKolejek, wiadOdebrana.username)]), &wiadWyslana, sizeof(wiadWyslana), 0) == -1){
+                            perror("msgsnd join pokoj");
+                            exit(1);
+                        }
                     }
                 }
             }
