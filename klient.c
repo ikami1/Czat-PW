@@ -31,7 +31,7 @@ int main(){
           perror("msgsnd klient nr kolejki");
           exit(1);
        }
-       if(msgrcv(idklienta, &wiadOdebrana, sizeof(wiadOdebrana), 3, 0) == -1){
+       if(msgrcv(idklienta, &wiadOdebrana, sizeof(wiadOdebrana) - sizeof(long), 3, 0) == -1){
             perror("msgrcv wiadomosc po logowaniu");
             exit(1);
         }
@@ -63,7 +63,7 @@ int main(){
       }
    else
    	  while(1){                 //fork ktory odczytuje komunikacje od serwera
-          if(msgrcv(idklienta, &wiadOdebrana, sizeof(wiadOdebrana), -3, 0) == -1){
+          if(msgrcv(idklienta, &wiadOdebrana, sizeof(wiadOdebrana) - sizeof(long), -3, 0) == -1){
             perror("msgrcv klient od serwera");
             exit(1);
           }
