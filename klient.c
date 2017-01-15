@@ -41,7 +41,7 @@ int main(){
             break;
         }
         else{
-            if(msgctl(idklienta, IPC_RMID, 0){
+            if(msgctl(idklienta, IPC_RMID, 0)){
                 perror("msgctl klient po logowaniu");
                 exit(1);
             }
@@ -68,7 +68,7 @@ int main(){
             exit(1);
           }
           if(wiadOdebrana.mtype == 3 && !strcmp(wiadOdebrana.message, "exit")){
-             if(msgctl(idklienta, IPC_RMID, 0){
+             if(msgctl(idklienta, IPC_RMID, 0)){
                 perror("msgctl klient po logowaniu");
                 exit(1);
              }
