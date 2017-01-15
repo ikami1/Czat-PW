@@ -9,7 +9,7 @@ int main(){
 
    if((idserwer = msgget(key, IPC_CREAT | 0622)) == -1){
         perror("msgget serwer");
-    	exit(1);
+      exit(1);
     }
 
     printf("ID serwera: %d\n", idserwer);
@@ -103,7 +103,7 @@ int main(){
                 strcpy(wiadWyslana.from, wiadOdebrana.username);
                 strcpy(wiadWyslana.to, splitToWho(polecenie));
                 strcpy(wiadWyslana.message, wiadOdebrana.data);
-                if(czyZajety(tablicaKolejek, wiadWyslana.to)){
+                if(!czyZajety(tablicaKolejek, wiadWyslana.to) || !strcmp(wiadWyslana.to, "serwer")){
                     strcpy(wiadWyslana.from, zajeteid);
                     strcpy(wiadWyslana.to, wiadOdebrana.username);
                     strcpy(wiadWyslana.message, "Nie ma takiego uzytkownika\n");
@@ -147,8 +147,8 @@ int main(){
 
 
     /*if (semctl(id, IPC_RMID, 0) == -1){
-    	perror("semctl - usuwanie");
-    	exit(1);
+      perror("semctl - usuwanie");
+      exit(1);
     }*/
 
    return 0;
