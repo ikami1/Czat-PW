@@ -47,5 +47,7 @@ int czyZajety(char *tablica[2][MAX_USERS], char nickname[]){
         if(!strcmp(tablica[0][i],nickname)){
             return 1;
         }
+    if(!strcmp(nickname,"serwer"))              //pod ta nazwa jest serwer
+        return 1;
     return 0;
 }
