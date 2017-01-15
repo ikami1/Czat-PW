@@ -24,6 +24,16 @@
 // maksymalna d³ugoœæ wiadomoœci
 #define MAX_MESSAGE_LENGTH 2048
 
+#define BG_BLACK 40
+#define BRIGHT 1
+#define RED 31
+#define GREEN 32
+#define YELLOW 33
+#define BLUE 34
+#define PINK 35
+#define CYAN 36
+#define WHITE 37
+
 
 /*
 # Wymiana da#include <stdlib.h>
@@ -84,5 +94,6 @@ void znajdz_polecenie(char linia[], char polecenie[]);
 int znajdzIndeks(char tablica[][], char nickname);
 char* splitToWho(char polecenie[]);
 int czyZajety(char *tablica[2][MAX_USERS], char nickname[]);
+void Reset();
 
 #endif //IPCCHAT_IPCCHAT_H
