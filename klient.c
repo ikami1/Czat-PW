@@ -21,7 +21,7 @@ int main(){
        scanf("%s", wiadDoSerwera.username);
 
        key_t key = ftok("komunikacja", wiadDoSerwera.username);
-       if((idklienta = msgget(key, IPC_CREAT | 0622)) == -1){
+       if((idklienta = msgget(IPC_PRIVATE, 0622)) == -1){
           perror("msgget klient");
           exit(1);
        }
@@ -36,7 +36,7 @@ int main(){
             exit(1);
         }
         printf("%s", wiadOdebrana.message);
-        if(!strcmp(wiadOdebrana.message, "Logowanie zakonczone sukcesem\n")){
+        if(wiadOdebrana.mtype == 2){
             moznazalogowac = 1;
             break;
         }
@@ -67,7 +67,7 @@ int main(){
             perror("msgrcv klient od serwera");
             exit(1);
           }
-          if(wiadOdebrana.mtype == 3 && !strcmp(wiadOdebrana.message, "exit")){
+          if(wiadOdebrana.mtype == 3){
              if(msgctl(idklienta, IPC_RMID, 0)){
                 perror("msgctl klient po logowaniu");
                 exit(1);
